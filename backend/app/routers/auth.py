@@ -7,13 +7,22 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from app.core.deps import CurrentUser
 from app.core.security import create_access_token, create_refresh_token, decode_token
 from app.db.session import get_db
 from app.models import User
 from app.schemas.auth import RefreshRequest, TokenResponse
+from app.schemas.user import UserResponse
 from app.services import auth_service
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
+
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: CurrentUser):
+    """Profil de l'utilisateur connecté — utilisé par le frontend pour
+    afficher le nom/rôle et construire le menu adapté."""
+    return current_user
 
 
 @router.post("/login", response_model=TokenResponse)

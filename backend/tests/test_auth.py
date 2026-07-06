@@ -56,6 +56,18 @@ def test_refresh_returns_new_tokens(client, make_user):
     assert response.json()["access_token"]
 
 
+def test_me_returns_profile_without_secrets(client, make_user):
+    user = make_user("director")
+    login = client.post("/auth/login", data={"username": user.email, "password": TEST_PASSWORD}).json()
+
+    response = client.get("/auth/me", headers={"Authorization": f"Bearer {login['access_token']}"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["email"] == user.email and body["role"] == "director"
+    assert "password_hash" not in body
+
+
 def test_refresh_token_cannot_be_used_as_access_token(client, make_user):
     user = make_user("advisor")
     login = client.post("/auth/login", data={"username": user.email, "password": TEST_PASSWORD}).json()
