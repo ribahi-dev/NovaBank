@@ -1,0 +1,10 @@
+# =============================================================================
+# requirements-dev.txt — outils de développement UNIQUEMENT.
+#
+# Séparés de requirements.txt car l'image Docker de production n'a pas
+# besoin de pytest ni de ruff : image plus légère, surface d'attaque réduite.
+# Installation :  pip install -r requirements.txt -r requirements-dev.txt
+# =============================================================================
+pytest==9.1.1                   # framework de tests
+httpx==0.28.1                   # client HTTP utilisé par TestClient pour appeler l'API en test
+ruff==0.15.20                   # linter + formateur ultra-rapide (remplace flake8+isort+black)
