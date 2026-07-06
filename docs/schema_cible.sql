@@ -1,4 +1,22 @@
 -- =============================================================================
+-- ⚠️ DOCUMENT D'ARCHITECTURE CIBLE — NON EXÉCUTÉ PAR L'APPLICATION
+--
+-- Ce fichier était l'ancien script d'initialisation Docker (db/init.sql).
+-- Il a été retiré du docker-compose car le projet a UNE SEULE source de
+-- vérité pour le schéma : les modèles SQLAlchemy (backend/app/models/)
+-- migrés par Alembic. Deux définitions concurrentes du schéma divergent
+-- toujours avec le temps (c'était déjà le cas : tables au singulier ici,
+-- au pluriel dans les modèles ; RBAC par tables ici, par enum là-bas).
+--
+-- On le conserve comme DOCUMENTATION de l'architecture cible "grande
+-- échelle" : partitionnement mensuel des transactions, Row Level Security,
+-- triggers d'audit JSONB, chiffrement PAN, vue matérialisée des soldes.
+-- En soutenance : « voici le MVP fonctionnel, et voici l'architecture
+-- cible conçue pour le passage à l'échelle ». Les meilleures idées
+-- (audit, immutabilité des transactions réglées) seront réintroduites
+-- au besoin via des migrations Alembic.
+-- =============================================================================
+--
 -- Init script for PostgreSQL 16/17 – full schema for the banking platform
 --
 -- Fixes applied vs. the original draft:
