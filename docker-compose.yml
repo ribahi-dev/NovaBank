@@ -46,5 +46,21 @@ services:
       timeout: 3s
       retries: 10
 
+  api:
+    build: ./backend            # image construite depuis backend/Dockerfile
+    container_name: novabank_api
+    restart: unless-stopped
+    environment:
+      # À l'INTÉRIEUR du réseau Docker, Postgres s'appelle "postgres"
+      # (nom du service) et écoute sur son port natif 5432 — le port 5433
+      # n'existe que vu depuis la machine hôte.
+      DATABASE_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/novabank
+      SECRET_KEY: ${SECRET_KEY:-dev-only-change-me-in-env-2f8c1a94e7b3d6051c8f2ab47d9e0361}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy   # attend que pg_isready réponde (voir healthcheck)
+
 volumes:
   postgres_data:

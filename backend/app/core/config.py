@@ -26,8 +26,19 @@ class Settings(BaseSettings):
 
     # Clé de signature des JWT. Le défaut n'existe que pour le confort du
     # dev local ; en démo/production, la vraie valeur vient du .env.
-    secret_key: str = "change-this-secret-key"
+    # >= 32 octets exigés pour HMAC-SHA256 (RFC 7518) — ce défaut de dev
+    # est volontairement long ; la vraie clé vient du .env.
+    secret_key: str = "dev-only-change-me-in-env-2f8c1a94e7b3d6051c8f2ab47d9e0361"
+    jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    refresh_token_expire_days: int = 7
+
+    # Anti force-brute (CdC Module 8) : verrouillage temporaire du compte.
+    max_failed_login_attempts: int = 5
+    lockout_minutes: int = 15
+
+    # Seuil de score (0-100) au-delà duquel une alerte est créée.
+    risk_alert_threshold: int = 70
 
     # Pas de valeur par défaut = variable OBLIGATOIRE : impossible de
     # démarrer l'API sans savoir où est la base.

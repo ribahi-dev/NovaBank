@@ -1,13 +1,10 @@
 # =============================================================================
-# ci.yml — Intégration Continue (CI) via GitHub Actions.
+# ci.yml — Intégration Continue : lint + tests avec un vrai PostgreSQL.
 #
-# Pourquoi ce fichier existe : à CHAQUE push et pull request, GitHub exécute
-# ce pipeline sur une machine neuve. Si le lint ou un test échoue, le commit
-# est marqué d'une croix rouge — le trinôme le voit immédiatement, AVANT
-# que le bug n'atteigne la branche principale. C'est le filet de sécurité
-# qui permet d'avancer vite à trois sans se casser mutuellement le code.
-#
-# Le badge (vert/rouge) affiché dans le README vient de ce workflow.
+# À chaque push/PR, GitHub exécute ce pipeline sur une machine neuve. Les
+# tests d'intégration tournent contre un PostgreSQL 16 éphémère (service
+# Docker), exactement comme en local — le badge vert prouve que TOUTE la
+# chaîne (auth, RBAC, transactions, scoring, alertes) fonctionne.
 # =============================================================================
 name: CI
 
@@ -23,8 +20,27 @@ jobs:
       run:
         working-directory: backend
 
+    # PostgreSQL jetable, détruit à la fin du job. Port 5433 côté hôte
+    # pour refléter la convention locale du projet.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: novabank
+        ports:
+          - "5433:5432"
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:password@localhost:5433/novabank
+
     steps:
-      # Récupère le code du dépôt sur la machine de CI.
       - uses: actions/checkout@v4
 
       # Même version que sur les machines du trinôme : la CI doit reproduire
@@ -32,20 +48,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-          cache: pip                      # réutilise les paquets téléchargés -> CI plus rapide
+          cache: pip
           cache-dependency-path: backend/requirements*.txt
 
       - name: Installer les dépendances
         run: pip install -r requirements.txt -r requirements-dev.txt
 
-      # Le lint AVANT les tests : détecter en quelques secondes les imports
-      # morts, variables inutilisées et erreurs de style, sans rien exécuter.
       - name: Lint (ruff)
         run: ruff check .
 
-      # Les tests n'ont pas besoin de PostgreSQL pour l'instant (test_health
-      # ne touche pas la base) ; conftest.py fournit un DATABASE_URL factice.
-      # Quand les tests d'intégration arriveront (Phase B8), un service
-      # postgres sera ajouté ici.
       - name: Tests (pytest)
         run: pytest -v
