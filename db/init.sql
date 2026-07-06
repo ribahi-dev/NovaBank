@@ -409,5 +409,5 @@ COMMENT ON FUNCTION fn_audit IS 'Generic audit trigger – records before/after 
 COMMENT ON FUNCTION fn_immutable_settled IS 'Prevents modification of settled transactions';
 COMMENT ON FUNCTION fn_block_suspended_account IS 'Blocks new transactions on suspended accounts';
 COMMENT ON FUNCTION fn_encrypt_pan IS 'Encrypts PAN with pgp_sym_encrypt – key must be supplied by the app';
-COMMENT ON POLICY client_account_policy IS 'Ensures a client can only access his/her own accounts';
-COMMENT ON POLICY client_transaction_policy IS 'Ensures a client can only see transactions belonging to his/her accounts';
+COMMENT ON POLICY client_account_policy ON account IS 'Ensures a client can only access his/her own accounts';
+COMMENT ON POLICY client_transaction_policy ON transaction IS 'Ensures a client can only see transactions belonging to his/her accounts';
