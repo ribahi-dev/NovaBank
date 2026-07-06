@@ -1,17 +1,38 @@
-fastapi==0.116.1
-uvicorn[standard]==0.35.0
-sqlalchemy==2.0.41
-psycopg2-binary==2.9.10
-alembic==1.16.4
-pydantic==2.11.7
-pydantic-settings==2.10.1
-python-jose[cryptography]==3.5.0
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.20
-python-dotenv==1.1.1
-pandas==2.3.0
-numpy==2.3.1
-scikit-learn==1.7.0
-reportlab==4.4.2
-openpyxl==3.1.5
+# =============================================================================
+# requirements.txt — dépendances du backend, versions épinglées (==).
+#
+# Pourquoi épingler : le trinôme, la CI et la machine de démo doivent
+# installer EXACTEMENT les mêmes versions. Sans ==, un `pip install` fait
+# six semaines plus tard peut tirer une version qui casse tout la veille
+# de la soutenance ("ça marche chez moi" garanti).
+#
+# Règle appliquée ici : on épingle les versions réellement INSTALLÉES ET
+# TESTÉES sur Python 3.14 (les anciennes versions du tutoriel n'avaient
+# pas de binaires compilés pour 3.14 — leçon retenue).
+# =============================================================================
 
+# --- Cœur de l'API ---
+fastapi==0.139.0                # framework web : routing, validation, OpenAPI/Swagger auto
+uvicorn[standard]==0.50.2       # serveur ASGI qui exécute FastAPI
+
+# --- Base de données ---
+sqlalchemy==2.0.51              # ORM : les classes Python <-> tables PostgreSQL
+psycopg[binary]==3.3.4          # driver PostgreSQL v3 (successeur de psycopg2 : plus
+                                # rapide, support async). [binary] = pas de compilation.
+alembic==1.18.5                 # migrations versionnées du schéma (le "git de la base")
+
+# --- Validation & configuration ---
+pydantic==2.13.4                # schémas d'entrée/sortie de l'API (validation forte)
+pydantic-settings==2.14.2       # charge et VALIDE le .env au démarrage
+
+# --- Sécurité ---
+pyjwt==2.13.0                   # création/vérification des JWT (python-jose est abandonné)
+pwdlib[bcrypt]==0.3.0           # hachage bcrypt des mots de passe (passlib est abandonné
+                                # et incompatible bcrypt>=4.1 ; bcrypt = exigence du CdC §8.4)
+python-multipart==0.0.32        # parsing des formulaires (requis par le login OAuth2 de FastAPI)
+
+# --- Data & IA (Modules 6, 7 et 10 du cahier des charges) ---
+# Installées et épinglées en Phase C du plan directeur (module IA/analytics/
+# rapports) : on n'alourdit pas l'installation ni la CI avec des paquets
+# que le code n'utilise pas encore.
+# pandas / numpy / scikit-learn / reportlab / openpyxl

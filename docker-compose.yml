@@ -1,20 +1,50 @@
+# =============================================================================
+# docker-compose.yml — orchestre les services de la plateforme NovaBank.
+#
+# Pourquoi ce fichier existe : il décrit l'infrastructure (base de données,
+# et bientôt API + frontend) de façon REPRODUCTIBLE. N'importe quel membre
+# du trinôme — ou le jury — obtient le même environnement avec une seule
+# commande : `docker compose up -d`.
+#
+# Le schéma de la base n'est PAS créé ici (pas de script init.sql monté) :
+# la source de vérité du schéma est le code Python (models SQLAlchemy),
+# appliqué par Alembic. La base démarre vide, le code la remplit.
+# =============================================================================
 services:
   postgres:
-    image: postgres:16
-    container_name: attijari_mvp_postgres
-    restart: unless-stopped
+    image: postgres:16          # version majeure épinglée = pas de surprise lors d'un `pull`
+    container_name: novabank_postgres
+    restart: unless-stopped     # redémarre avec Docker Desktop, sauf arrêt manuel
 
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: attijari_mvp
+      # Le mot de passe vient du fichier .env (non versionné) ; la valeur
+      # après `:-` est un défaut de dépannage pour le dev local uniquement.
+      # Règle : AUCUN secret en dur dans un fichier versionné sur GitHub.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: novabank
 
     ports:
-      - "5432:5432"
+      # Port HÔTE 5433 -> port CONTENEUR 5432. On ne publie pas sur 5432
+      # car une installation PostgreSQL native sur la machine d'un membre
+      # de l'équipe (service Windows/Linux) occuperait déjà ce port : le
+      # backend se connecterait alors au MAUVAIS serveur avec une erreur
+      # d'authentification incompréhensible (cas vécu sur ce projet).
+      - "5433:5432"
 
     volumes:
+      # Volume nommé : les données survivent à la destruction du conteneur.
+      # Sans lui, chaque `docker compose down` effacerait toute la base.
       - postgres_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    # Le healthcheck permettra aux futurs services (api, frontend) d'attendre
+    # que Postgres soit réellement PRÊT (depends_on: condition: service_healthy)
+    # et pas seulement démarré — cause n°1 des "connection refused" au boot.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d novabank"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   postgres_data:

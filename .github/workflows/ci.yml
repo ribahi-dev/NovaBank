@@ -1,0 +1,51 @@
+# =============================================================================
+# ci.yml — Intégration Continue (CI) via GitHub Actions.
+#
+# Pourquoi ce fichier existe : à CHAQUE push et pull request, GitHub exécute
+# ce pipeline sur une machine neuve. Si le lint ou un test échoue, le commit
+# est marqué d'une croix rouge — le trinôme le voit immédiatement, AVANT
+# que le bug n'atteigne la branche principale. C'est le filet de sécurité
+# qui permet d'avancer vite à trois sans se casser mutuellement le code.
+#
+# Le badge (vert/rouge) affiché dans le README vient de ce workflow.
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: ["main", "master", "develop"]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      # Récupère le code du dépôt sur la machine de CI.
+      - uses: actions/checkout@v4
+
+      # Même version que sur les machines du trinôme : la CI doit reproduire
+      # l'environnement de dev, sinon "vert en CI mais cassé en local".
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip                      # réutilise les paquets téléchargés -> CI plus rapide
+          cache-dependency-path: backend/requirements*.txt
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      # Le lint AVANT les tests : détecter en quelques secondes les imports
+      # morts, variables inutilisées et erreurs de style, sans rien exécuter.
+      - name: Lint (ruff)
+        run: ruff check .
+
+      # Les tests n'ont pas besoin de PostgreSQL pour l'instant (test_health
+      # ne touche pas la base) ; conftest.py fournit un DATABASE_URL factice.
+      # Quand les tests d'intégration arriveront (Phase B8), un service
+      # postgres sera ajouté ici.
+      - name: Tests (pytest)
+        run: pytest -v
