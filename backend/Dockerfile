@@ -11,6 +11,10 @@
 # =============================================================================
 FROM python:3.14-slim
 
+# Sortie Python non bufferisée : les logs (entrypoint, uvicorn) apparaissent
+# en temps réel dans `docker logs`, indispensable pour diagnostiquer.
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
 COPY requirements.txt .

@@ -2,9 +2,13 @@
 
 # 🏦 NovaBank — Plateforme bancaire intelligente d'aide à la décision
 
-**Prototype (MVP) d'une plateforme web pour agence bancaire** : gestion des clients,
-comptes et transactions, **scoring de risque avec explication lisible**, centre
-d'alertes, tableau de bord analytique et cybersécurité (JWT, RBAC, audit).
+**Plateforme web pour agence bancaire** : gestion des clients, comptes et transactions,
+**détection d'anomalies par Machine Learning (Random Forest) avec explication lisible**,
+boucle de feedback, centre d'alertes, tableau de bord analytique et cybersécurité
+(JWT, RBAC, audit).
+
+> 🎓 **Version PFE** — cette version enrichit le MVP d'un véritable modèle de Machine
+> Learning entraîné et évalué, d'une boucle de feedback humain et de migrations Alembic.
 
 Projet de stage — El Mehdi Ribahi · Adam El Mansour · Malak Harf-ezzine
 Encadrante : Raiss Bouchra
@@ -103,9 +107,11 @@ testable et évolutif.
 | Backend | **FastAPI** (Python) | Performant, validation Pydantic, Swagger auto |
 | ORM | **SQLAlchemy 2.0** | Modèles Python ↔ tables PostgreSQL |
 | Base | **PostgreSQL 16** | SGBD relationnel robuste, standard entreprise |
+| IA | **scikit-learn (Random Forest)** | Scoring de risque entraîné + évalué, repli sur règles |
+| Migrations | **Alembic** | Versionnage du schéma de la base |
 | Sécurité | **JWT + bcrypt + RBAC** | Auth stateless, rôles vérifiés côté serveur |
 | Conteneurs | **Docker Compose** | Déploiement reproductible en une commande |
-| Tests / CI | **pytest + GitHub Actions** | 40 tests d'intégration, badge vert à chaque push |
+| Tests / CI | **pytest + GitHub Actions** | 44 tests d'intégration, badge vert à chaque push |
 
 ---
 
@@ -117,8 +123,11 @@ testable et évolutif.
 - 💳 **Comptes** — ouverture, numéro généré par le système, blocage/déblocage.
 - 🔁 **Transactions** — dépôt, retrait, **virement avec verrou PostgreSQL** (pas de
   corruption de solde en cas d'opérations simultanées).
-- 🤖 **Scoring de risque** — 5 signaux (montant/revenu, heure, ville, fréquence),
-  score 0–100 **avec explication lisible** pour le directeur.
+- 🤖 **Scoring de risque par IA** — modèle **Random Forest** (scikit-learn) sur 5 signaux
+  (montant/revenu, heure, ville, fréquence), score 0–100 **avec explication lisible**.
+  Repli automatique sur un moteur de règles si le modèle est absent.
+- 🔁 **Boucle de feedback** — la qualification des alertes par le directeur
+  (fraude confirmée / faux positif) alimente le réentraînement du modèle.
 - 🚨 **Centre d'alertes** — création automatique, cycle de vie (ouverte → en cours →
   clôturée), détail explicable.
 - 📊 **Tableau de bord** — KPI et graphiques Plotly (activité, répartition, risque).
@@ -166,6 +175,8 @@ npm run dev                       # http://localhost:5173
 
 | Document | Contenu |
 |---|---|
+| [docs/GUIDE_COMPLET.md](docs/GUIDE_COMPLET.md) | Guide fichier par fichier + questions du jury |
+| [docs/evaluation_ml.md](docs/evaluation_ml.md) | Méthodologie et métriques du module IA (version PFE) |
 | [docs/plan_directeur.md](docs/plan_directeur.md) | Vision finale et étapes de réalisation |
 | [docs/base_de_donnees.md](docs/base_de_donnees.md) | Modèle de données du MVP |
 | [docs/schema_cible.sql](docs/schema_cible.sql) | Architecture PostgreSQL « grande échelle » (partitionnement, RLS, triggers) documentée pour l'évolution |
