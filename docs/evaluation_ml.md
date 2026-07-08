@@ -114,9 +114,25 @@ python -m scripts.train_model
 # -> ml_artifacts/model.joblib + ml_artifacts/metrics.json
 ```
 
+## 8 bis. Explicabilité SHAP (XAI) — intégrée
+
+Pour chaque transaction scorée par le modèle, nous calculons les **valeurs SHAP**
+(`app/ml/model.py`, `shap.TreeExplainer`). SHAP répartit le score entre les variables
+selon une base mathématique solide (valeurs de Shapley, théorie des jeux) : une
+contribution **positive pousse vers la fraude**, **négative vers le normal**.
+
+Ces contributions sont **stockées** avec le score (`risk_scores.shap_values`, JSON) et
+**affichées** dans l'interface sous forme de barres bidirectionnelles — le directeur voit
+non seulement *que* la transaction est risquée, mais *pourquoi*, variable par variable.
+C'est la méthode de référence de l'état de l'art, et un argument fort de conformité
+(explicabilité exigée par le RGPD / l'EU AI Act).
+
+L'implémentation est **robuste** : si SHAP n'est pas disponible, la fonction renvoie
+`None` et l'application continue avec l'explication textuelle — jamais de panne.
+
 ## 9. Limites et perspectives
 
 - **Données simulées** : validées statistiquement, mais pas réelles (décision DSI).
-- **Explicabilité** : nous produisons une explication par contribution des variables ;
-  l'intégration de **SHAP** est la prochaine étape.
-- **Réentraînement** : aujourd'hui manuel ; une automatisation périodique est envisagée.
+- **Réentraînement** : aujourd'hui manuel (ou au build de l'image) ; une automatisation
+  périodique, déclenchée par le volume de feedback, est envisagée.
+- **Modèles avancés** : XGBoost / LightGBM pourraient être comparés au Random Forest.

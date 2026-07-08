@@ -108,6 +108,8 @@ testable et évolutif.
 | ORM | **SQLAlchemy 2.0** | Modèles Python ↔ tables PostgreSQL |
 | Base | **PostgreSQL 16** | SGBD relationnel robuste, standard entreprise |
 | IA | **scikit-learn (Random Forest)** | Scoring de risque entraîné + évalué, repli sur règles |
+| Explicabilité | **SHAP** | Contribution de chaque variable au score (XAI) |
+| Rapports | **reportlab + openpyxl** | Export PDF et Excel côté serveur |
 | Migrations | **Alembic** | Versionnage du schéma de la base |
 | Sécurité | **JWT + bcrypt + RBAC** | Auth stateless, rôles vérifiés côté serveur |
 | Conteneurs | **Docker Compose** | Déploiement reproductible en une commande |
@@ -126,6 +128,9 @@ testable et évolutif.
 - 🤖 **Scoring de risque par IA** — modèle **Random Forest** (scikit-learn) sur 5 signaux
   (montant/revenu, heure, ville, fréquence), score 0–100 **avec explication lisible**.
   Repli automatique sur un moteur de règles si le modèle est absent.
+- 🔍 **Explicabilité SHAP** — contribution de chaque variable au score, affichée en
+  graphique (méthode XAI de référence, exigence de conformité RGPD / EU AI Act).
+- 📑 **Rapports serveur** — génération PDF (reportlab) et Excel (openpyxl) téléchargeables.
 - 🔁 **Boucle de feedback** — la qualification des alertes par le directeur
   (fraude confirmée / faux positif) alimente le réentraînement du modèle.
 - 🚨 **Centre d'alertes** — création automatique, cycle de vie (ouverte → en cours →
