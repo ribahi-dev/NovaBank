@@ -6,6 +6,7 @@ import api, { apiError } from "@/api/client";
 import type { Alert } from "@/api/types";
 import { PageHeader } from "@/components/layout/AppLayout";
 import { ScoreBadge } from "@/components/shared/ScoreBadge";
+import { ShapChart } from "@/components/shared/ShapChart";
 import { Badge, LEVEL_TONE, STATUS_TONE } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -138,9 +139,12 @@ export default function Fraud() {
                     <ScoreBadge score={selected.transaction.risk_score?.score} />
                   </div>
                   {selected.transaction.risk_score && (
-                    <div className="rounded-r-lg border-l-4 border-primary bg-primary-soft p-3 text-[13px] leading-relaxed">
-                      {selected.transaction.risk_score.explanation}
-                    </div>
+                    <>
+                      <div className="rounded-r-lg border-l-4 border-primary bg-primary-soft p-3 text-[13px] leading-relaxed">
+                        {selected.transaction.risk_score.explanation}
+                      </div>
+                      <ShapChart values={selected.transaction.risk_score.shap_values} />
+                    </>
                   )}
                 </div>
               )}

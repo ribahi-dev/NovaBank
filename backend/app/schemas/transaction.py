@@ -34,6 +34,9 @@ class RiskScoreResponse(BaseModel):
     confidence_level: str
     explanation: str
     model_version: str
+    # Contributions SHAP par variable (null si score par règles) — alimente
+    # le graphique d'explicabilité côté frontend.
+    shap_values: dict[str, float] | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

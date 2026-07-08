@@ -82,3 +82,34 @@ def test_model_loads_valid_artifact_and_rejects_bad_features(tmp_path, monkeypat
     with pytest.raises(RuntimeError, match="incompatible"):
         ml_model.is_available()
     ml_model.reload()
+
+
+def test_shap_contributions_when_model_present(tmp_path, monkeypatch):
+    """SHAP renvoie une contribution par variable quand un modèle existe."""
+    X = np.array([[0, 0, 0, 0, 0], [6, 6, 1, 1, 9]] * 8)
+    y = np.array([0, 1] * 8)
+    rf = RandomForestClassifier(n_estimators=10, random_state=0).fit(X, y)
+    artifact = tmp_path / "m.joblib"
+    joblib.dump({"model": rf, "feature_names": FEATURE_NAMES, "version": "ml-test"}, artifact)
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ml_model_path", str(artifact))
+    ml_model.reload()
+
+    contrib = ml_model.explain_shap(
+        TransactionFeatures(amount_over_income=6, amount_over_avg=6, is_night=1, city_changed=1, tx_last_24h=9)
+    )
+    ml_model.reload()
+
+    assert contrib is not None
+    assert set(contrib.keys()) == set(FEATURE_NAMES)  # une contribution par feature
+    assert all(isinstance(v, float) for v in contrib.values())
+
+
+def test_shap_is_none_without_model():
+    """Sans modèle chargé, SHAP renvoie None (pas d'erreur)."""
+    ml_model.reload()
+    assert ml_model.explain_shap(
+        TransactionFeatures(amount_over_income=1, amount_over_avg=1, is_night=0, city_changed=0, tx_last_24h=1)
+    ) is None

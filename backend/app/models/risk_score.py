@@ -18,8 +18,9 @@ Choix techniques à retenir :
 """
 
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -43,6 +44,11 @@ class RiskScore(Base):
     explanation: Mapped[str] = mapped_column(Text)
 
     model_version: Mapped[str] = mapped_column(String(50), default="mvp-rules-v1")
+
+    # Contributions SHAP par variable (XAI) : {"amount_over_income": 0.15, ...}.
+    # NULL quand le score vient du moteur de règles (SHAP ne s'applique qu'au
+    # modèle ML). Stocké en JSON pour alimenter le graphique d'explication.
+    shap_values: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

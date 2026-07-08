@@ -9,12 +9,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import accounts, alerts, analytics, audit, auth, clients, transactions, users
+from app.routers import (
+    accounts, alerts, analytics, audit, auth, clients, reports, transactions, users,
+)
 
 app = FastAPI(
     title=settings.app_name,
-    description="Plateforme bancaire intelligente d'aide à la décision — MVP",
-    version="0.1.0",
+    description="Plateforme bancaire intelligente d'aide à la décision — détection "
+    "d'anomalies par Machine Learning (Random Forest + SHAP)",
+    version="2.0.0",
 )
 
 # CORS : seul le frontend de dev est autorisé (liste blanche stricte,
@@ -34,6 +37,7 @@ app.include_router(accounts.router)
 app.include_router(transactions.router)
 app.include_router(alerts.router)
 app.include_router(analytics.router)
+app.include_router(reports.router)
 app.include_router(audit.router)
 
 

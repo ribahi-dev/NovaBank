@@ -34,6 +34,15 @@ python-multipart==0.0.32        # parsing des formulaires (requis par le login O
 # --- Intelligence Artificielle (Module 7 — version PFE) ---
 # Le moteur de scoring peut utiliser un modèle entraîné (RandomForest).
 # scikit-learn tire numpy et scipy ; joblib sérialise/charge l'artefact.
-numpy==2.5.1                    # calcul vectoriel (features, entraînement)
+numpy==2.4.6                    # calcul vectoriel (features) — <2.5 exigé par numba
 scikit-learn==1.9.0             # RandomForest + IsolationForest + métriques
 joblib==1.5.3                   # sauvegarde/chargement du modèle entraîné
+shap==0.52.0                    # explicabilité XAI (contributions par variable)
+# numba/llvmlite épinglés aux versions testées localement (wheels Python 3.14) :
+# sans ces pins explicites, pip résout vers une vieille numba incompatible.
+numba==0.66.0                   # accélérateur requis par SHAP (supporte Python 3.14)
+llvmlite==0.48.0                # dépendance native de numba
+
+# --- Rapports (Module 10 — export serveur) ---
+reportlab==5.0.0                # génération de PDF
+openpyxl==3.1.5                 # génération de fichiers Excel (.xlsx)

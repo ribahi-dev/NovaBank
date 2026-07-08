@@ -1,6 +1,6 @@
-// Rapports : aperçu + export CSV (compatible Excel) côté client.
-// L'export PDF/Excel serveur (reportlab/openpyxl) est l'étape backend suivante.
-import { Download, FileSpreadsheet } from "lucide-react";
+// Rapports : aperçu + exports SERVEUR (PDF via reportlab, Excel via openpyxl)
+// et export CSV rapide côté client.
+import { Download, FileSpreadsheet, FileText, Sheet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import api from "@/api/client";
 import type { Client, Transaction } from "@/api/types";
@@ -74,15 +74,48 @@ export default function Reports() {
     toast("success", `Export ${dataset} téléchargé (${rows.length} lignes) — ouvrable dans Excel.`);
   }
 
+  // Télécharge un fichier généré par le SERVEUR (PDF/Excel), en passant par
+  // le client axios (donc avec le jeton JWT). responseType blob = binaire.
+  async function downloadServer(path: string, filename: string, label: string) {
+    try {
+      const { data } = await api.get(path, { responseType: "blob" });
+      const url = URL.createObjectURL(data as Blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast("success", `${label} téléchargé.`);
+    } catch {
+      toast("error", `Échec du téléchargement (${label}).`);
+    }
+  }
+
+  const stamp = new Date().toISOString().slice(0, 10);
+
   return (
     <>
       <PageHeader
         title="Rapports"
         subtitle="Génération et export des données de l'agence"
         actions={
-          <Button onClick={exportCsv} disabled={rows.length === 0}>
-            <Download size={16} /> Exporter (Excel/CSV)
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => downloadServer("/reports/activity.pdf", `novabank_activite_${stamp}.pdf`, "Rapport PDF")}
+            >
+              <FileText size={16} /> Rapport PDF
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => downloadServer("/reports/transactions.xlsx", `novabank_transactions_${stamp}.xlsx`, "Export Excel")}
+            >
+              <Sheet size={16} /> Export Excel
+            </Button>
+            <Button onClick={exportCsv} disabled={rows.length === 0}>
+              <Download size={16} /> Export CSV
+            </Button>
+          </div>
         }
       />
       <Card>

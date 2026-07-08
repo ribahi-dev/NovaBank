@@ -7,6 +7,7 @@ import api, { apiError } from "@/api/client";
 import type { Account, Client, Transaction } from "@/api/types";
 import { PageHeader } from "@/components/layout/AppLayout";
 import { ScoreBadge } from "@/components/shared/ScoreBadge";
+import { ShapChart } from "@/components/shared/ShapChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Select } from "@/components/ui/input";
@@ -171,6 +172,7 @@ export default function NewTransaction() {
               <div className="mt-4 rounded-r-lg border-l-4 border-primary bg-primary-soft p-3.5 text-sm leading-relaxed">
                 {result.risk_score.explanation}
               </div>
+              <ShapChart values={result.risk_score.shap_values} />
               <div
                 className={`mt-4 flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm ${
                   result.risk_score.score >= 70

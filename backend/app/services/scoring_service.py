@@ -31,6 +31,7 @@ class ScoringResult:
     confidence_level: str
     explanation: str
     model_version: str
+    shap_values: dict[str, float] | None = None  # contributions XAI (ML seulement)
 
 
 def _rules_score(f: TransactionFeatures) -> int:
@@ -59,9 +60,12 @@ def score_transaction(db: Session, account: Account, amount: Decimal, city: str 
     features = extract_features(db, account, amount, city)
     reasons = explain_features(features)
 
+    shap_values = None
     if ml_model.is_available():
         score = ml_model.predict_score(features)
         version = ml_model.version() or "ml-unknown"
+        # SHAP : explique la décision du modèle variable par variable (XAI).
+        shap_values = ml_model.explain_shap(features)
     else:
         score = _rules_score(features)
         version = RULES_VERSION
@@ -73,7 +77,8 @@ def score_transaction(db: Session, account: Account, amount: Decimal, city: str 
         else "Signaux détectés : " + " ; ".join(reasons) + "."
     )
     return ScoringResult(
-        score=score, confidence_level=confidence, explanation=explanation, model_version=version
+        score=score, confidence_level=confidence, explanation=explanation,
+        model_version=version, shap_values=shap_values,
     )
 
 
@@ -84,6 +89,7 @@ def persist_score(db: Session, transaction: Transaction, result: ScoringResult) 
         confidence_level=result.confidence_level,
         explanation=result.explanation,
         model_version=result.model_version,
+        shap_values=result.shap_values,
     )
     db.add(risk)
     return risk

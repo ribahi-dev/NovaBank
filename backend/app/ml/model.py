@@ -21,7 +21,7 @@ from typing import Any
 from app.core.config import settings
 from app.ml.features import FEATURE_NAMES, TransactionFeatures
 
-_cache: dict[str, Any] = {"artifact": None, "path": None}
+_cache: dict[str, Any] = {"artifact": None, "path": None, "explainer": None}
 
 
 def _load() -> dict | None:
@@ -52,6 +52,7 @@ def reload() -> None:
     """Vide le cache (tests, ou rechargement après réentraînement)."""
     _cache["artifact"] = None
     _cache["path"] = None
+    _cache["explainer"] = None
 
 
 def is_available() -> bool:
@@ -70,3 +71,35 @@ def predict_score(features: TransactionFeatures) -> int:
         raise RuntimeError("Aucun modèle ML disponible — utiliser le moteur de règles.")
     proba = artifact["model"].predict_proba([features.as_vector()])[0][1]
     return round(float(proba) * 100)
+
+
+def explain_shap(features: TransactionFeatures) -> dict[str, float] | None:
+    """Contribution SHAP de chaque feature à la prédiction de fraude (XAI).
+
+    SHAP (SHapley Additive exPlanations) répartit, de façon mathématiquement
+    fondée (théorie des jeux), le score entre les variables : une valeur
+    positive pousse vers la fraude, négative vers le normal. C'est la méthode
+    de référence de l'état de l'art pour expliquer un modèle d'arbres.
+
+    Retourne {feature: contribution} ou None si SHAP n'est pas installé /
+    si aucun modèle n'est disponible (l'app reste fonctionnelle sans).
+    """
+    artifact = _load()
+    if artifact is None:
+        return None
+    try:
+        import shap  # import différé : lourd, optionnel
+    except ImportError:
+        return None
+
+    import numpy as np
+
+    if _cache["explainer"] is None:
+        _cache["explainer"] = shap.TreeExplainer(artifact["model"])
+
+    # shap_values attend un tableau numpy ; pour un arbre binaire la sortie
+    # a la forme (1, n_features, 2 classes) -> on prend la classe 1 (fraude).
+    values = _cache["explainer"].shap_values(np.array([features.as_vector()]))
+    arr = np.array(values)
+    contrib = arr[0, :, 1] if arr.ndim == 3 else np.array(values[1])[0] if isinstance(values, list) else arr[0]
+    return {name: round(float(c), 4) for name, c in zip(FEATURE_NAMES, contrib)}

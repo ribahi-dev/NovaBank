@@ -39,6 +39,7 @@ export interface RiskScore {
   confidence_level: string;
   explanation: string;
   model_version: string;
+  shap_values: Record<string, number> | null;
 }
 
 export interface Transaction {
