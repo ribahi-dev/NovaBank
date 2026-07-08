@@ -13,7 +13,12 @@
 services:
   postgres:
     image: postgres:16          # version majeure épinglée = pas de surprise lors d'un `pull`
-    container_name: novabank_postgres
+    # Pas de container_name fixe : Docker Compose nomme le conteneur d'après
+    # le PROJET (nom du dossier), ex. "novabank-pfa-master-postgres-1". Un
+    # nom fixe provoquerait un conflit si un ancien conteneur du même nom
+    # existe déjà (issu d'un autre dossier ou d'un essai précédent) — erreur
+    # « container name is already in use ». Les services se joignent entre
+    # eux par leur nom de SERVICE (postgres, api), pas par le nom du conteneur.
     restart: unless-stopped     # redémarre avec Docker Desktop, sauf arrêt manuel
 
     environment:
@@ -48,7 +53,6 @@ services:
 
   api:
     build: ./backend            # image construite depuis backend/Dockerfile
-    container_name: novabank_api
     restart: unless-stopped
     environment:
       # À l'INTÉRIEUR du réseau Docker, Postgres s'appelle "postgres"
@@ -64,7 +68,6 @@ services:
 
   frontend:
     build: ./frontend           # image nginx construite depuis frontend/Dockerfile
-    container_name: novabank_frontend
     restart: unless-stopped
     ports:
       # L'application complète s'ouvre ici : http://localhost:8090
